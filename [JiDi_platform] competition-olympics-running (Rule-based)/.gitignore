@@ -1,0 +1,13 @@
+# Default ignored files
+.idea*
+*/__pycache__/*
+*/*/__pycache__/*
+logs/
+olympics/__pycache__/
+olympics/scenario/__pycache__/
+baselines/__pycache__/
+baselines/algo/__pycache__/
+olympics/test/.pytest_cache/
+baselines*
+.DS_Store
+assets/.DS_Store

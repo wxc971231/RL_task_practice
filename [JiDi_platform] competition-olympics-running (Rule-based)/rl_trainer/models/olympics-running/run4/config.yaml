@@ -1,0 +1,11 @@
+algo: ppo
+episode_length: 500
+game_name: olympics_running
+load_model: false
+load_model_run: 2
+load_model_run_episode: 4000
+map: 4
+max_episodes: 1500
+model_episode: 0
+save_interval: 100
+seed: 1
