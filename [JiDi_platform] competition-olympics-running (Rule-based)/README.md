@@ -1,13 +1,10 @@
-- 关于本项目的详细介绍请看：[RL 实践（0）—— 及第平台辛丑年冬赛季【Rule-based policy】](https://blog.csdn.net/wxc971231/article/details/125438242)
+- 赛题：[RLChina2021智能体竞赛](http://www.jidiai.cn/compete_detail?compete=12)
+- 复现详细介绍：[RL 实践（0）—— 及第平台辛丑年冬赛季【Rule-based policy】](https://blog.csdn.net/wxc971231/article/details/125438242)
 - 该项目引用并改编自 [官方 Repo](https://github.com/jidiai/Competition_Olympics-Running)，以下为其原始 README 文件
 
 # Competition_1v1running
 
 ## Environment
-
-<img src=https://gitee.com/jidiai/competition-olympics-running/raw/main/assets/olympics%20running.gif width=600>
-
-check details in Jidi Competition [RLChina2021智能体竞赛](http://www.jidiai.cn/compete_detail?compete=12)
 
 
 ### “奥林匹克 跑步运动”:
