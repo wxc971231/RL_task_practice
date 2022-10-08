@@ -20,6 +20,19 @@
 
 
 
+## 2. [Handcraft Env] K-arms bandit (MC)
+
+- **Project type**:  Compare the performance of four simple ways to balance exploration and exploitation in K-arms bandit environment, include
+
+  1. $\epsilon$-greedy
+  2. Decaying $\epsilon$-greedy
+  3. Upper confidence bound (UCB)
+  4. Thompson sampling
+
+  note that K-arms bandit environment is a simplified version of RL paradigm without state transform
+
+- **Detailed description**: [RL 实践（1）—— 多臂赌博机](https://blog.csdn.net/wxc971231/article/details/127103190)
+
 
 
 ...be continued
