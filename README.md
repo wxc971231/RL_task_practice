@@ -35,4 +35,9 @@
 
 
 
+## 3. [Handcraft Env] Jack's Car Rental (Policy Iteration & Value Iteration)
+
+- **Project type**:  Compare the performance of four simple ways to balance exploration and exploitation in K-arms bandit environment, include
+- 
+
 ...be continued
