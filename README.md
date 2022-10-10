@@ -37,7 +37,10 @@
 
 ## 3. [Handcraft Env] Jack's Car Rental (Policy Iteration & Value Iteration)
 
-- **Project type**:  Compare the performance of four simple ways to balance exploration and exploitation in K-arms bandit environment, include
-- 
+- **Project type**:  Implement an example of 《Reinforcement Learning An Introduction》with GUI
+
+  <img src="img/Jack's_car_rental.png" style="zoom:75%;" />
+
+- **Detailed description**: [RL 实践（2）—— 杰克租车问题【策略迭代 & 价值迭代】](https://blog.csdn.net/wxc971231/article/details/127222242)
 
 ...be continued
