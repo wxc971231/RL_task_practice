@@ -4,35 +4,37 @@ import gym
 import abc
 
 class Slover():
-    def __init__(self, env:gym.Env, alpha=0.1, gamma=0.9, epsilon=0.1):  
+    def __init__(self, env:gym.Env, alpha=0.1, gamma=0.9, epsilon=0.1, seed=None):  
         self.env = env      
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon
         self.n_action = env.action_space.n
         self.n_observation = env.observation_space.n
-        self.Q_table = np.zeros([self.n_observation, self.n_action])
-        self.V_table = np.zeros(self.n_observation)
-        self.greedy_policy = np.array([np.arange(self.n_action)]*self.n_observation)    # greedy policy，记录每个 observation 下所有最优 action 
-        self.policy_is_updated = False                                                  # 当前策略是否匹配最新的 Q_table
-
+        self.Q_table = np.zeros([self.n_observation, self.n_action], dtype=float)
+        self.V_table = np.zeros(self.n_observation, dtype=float)
+        self.greedy_policy = np.array([np.arange(self.n_action)]*self.n_observation, dtype=object)  # greedy policy，记录每个 observation 下所有最优 action 
+        self.policy_is_updated = False                                                              # 当前策略是否匹配最新的 Q_table
+        self.rng = np.random.RandomState(seed)                                                      # agent 使用的随机数生成器
+    
     def take_action(self, observation):
         # 确保策略是匹配最新 Q_table 的
         if not self.policy_is_updated:
             self.update_policy()
 
-        if np.random.random() < self.epsilon:
-            action = np.random.randint(self.n_action)
+        if self.rng.random() < self.epsilon:
+            action = self.rng.randint(self.n_action)
         else:
-            action = np.random.choice(self.greedy_policy[observation])
+            action = self.rng.choice(self.greedy_policy[observation])
             #action = self.greedy_policy[observation][0]    # 这个等价于 np.argmax(self.Q_table[observation])，速度快一点但忽略了其他最优动作
+
         return action
     
     # 从 Q_table 导出 greedy policy
     def update_policy(self):
         best_action_value = np.max(self.Q_table, axis=1)
         # 返回一个 ndarray 组成的列表，每个 ndarray 由对应状态下最优动作组成
-        self.greedy_policy = np.array([np.argwhere(self.Q_table[i]==best_action_value[i]).flatten() for i in range(self.n_observation)])
+        self.greedy_policy = np.array([np.argwhere(self.Q_table[i]==best_action_value[i]).flatten() for i in range(self.n_observation)], dtype=object)
         self.policy_is_updated = True
 
     # 用 Q_table 及其 greedy policy 计算 V_table
@@ -49,8 +51,8 @@ class Slover():
         pass
 
 class QLearning(Slover):
-    def __init__(self, env:gym.Env, alpha=0.1, gamma=0.9, epsilon=0.1):
-        super().__init__(env, alpha, gamma, epsilon)
+    def __init__(self, env:gym.Env, alpha=0.1, gamma=0.9, epsilon=0.1, seed=None):
+        super().__init__(env, alpha, gamma, epsilon, seed)
     
     def update_Q_table(self, s, a, r, s_):
         td_target = r + self.gamma * self.Q_table[s_].max()
@@ -59,8 +61,8 @@ class QLearning(Slover):
         self.policy_is_updated = False
 
 class Sarsa(Slover):
-    def __init__(self, env:gym.Env, alpha=0.1, gamma=0.9, epsilon=0.1):
-        super().__init__(env, alpha, gamma, epsilon)
+    def __init__(self, env:gym.Env, alpha=0.1, gamma=0.9, epsilon=0.1, seed=None):
+        super().__init__(env, alpha, gamma, epsilon, seed)
     
     def update_Q_table(self, s, a, r, s_, a_):
         td_target = r + self.gamma * self.Q_table[s_, a_]
@@ -69,8 +71,8 @@ class Sarsa(Slover):
         self.policy_is_updated = False
 
 class SarsaNStep(Slover):
-    def __init__(self, env:gym.Env, n_step=5, alpha=0.1, gamma=0.9, epsilon=0.1):
-        super().__init__(env, alpha, gamma, epsilon)
+    def __init__(self, env:gym.Env, n_step=5, alpha=0.1, gamma=0.9, epsilon=0.1, seed=None):
+        super().__init__(env, alpha, gamma, epsilon, seed)
         self.n_step = n_step    # 展开的步数
         self.state_list = []    # 保存之前的状态
         self.action_list = []   # 保存之前的动作
@@ -111,8 +113,8 @@ class SarsaNStep(Slover):
             self.reward_list = [] 
 
 class SarsaExp(Slover):
-    def __init__(self, env:gym.Env, alpha=0.1, gamma=0.9, epsilon=0.1):
-        super().__init__(env, alpha, gamma, epsilon)
+    def __init__(self, env:gym.Env, alpha=0.1, gamma=0.9, epsilon=0.1, seed=None):
+        super().__init__(env, alpha, gamma, epsilon, seed)
     
     def update_Q_table(self, s, a, r, s_):
         Q_exp = self.epsilon*self.Q_table[s_].mean() + (1-self.epsilon)*self.Q_table[s_].max()  # epsilon-greedy 策略下的 E_a[Q(s_,a)]
@@ -122,8 +124,8 @@ class SarsaExp(Slover):
         self.policy_is_updated = False
 
 class QLearningDouble(Slover):
-    def __init__(self, env:gym.Env, alpha=0.1, gamma=0.9, epsilon=0.1):
-        super().__init__(env, alpha, gamma, epsilon)
+    def __init__(self, env:gym.Env, alpha=0.1, gamma=0.9, epsilon=0.1, seed=None):
+        super().__init__(env, alpha, gamma, epsilon, seed)
         self.Q_table_ = self.Q_table.copy()
 
     def update_V_table(self):
@@ -143,7 +145,7 @@ class QLearningDouble(Slover):
         self.policy_is_updated = True
 
     def update_Q_table(self, s, a, r, s_):
-        if np.random.random() < 0.5:
+        if self.rng.random() < 0.5:
             td_target = r + self.gamma * self.Q_table[s_][np.argmax(self.Q_table_[s_])]
             td_error = td_target - self.Q_table_[s,a]
             self.Q_table_[s,a] += self.alpha * td_error

@@ -10,7 +10,6 @@ map_size = (4,12)
 env = CliffWalkingEnv(render_mode='human', map_size=map_size, pix_square_size=30)
 env.action_space.seed(42)
 observation, info = env.reset(seed=42)
-np.random.seed(42)
 wrapped_env = TimeLimit(env, max_episode_steps=100)
 wrapped_env = HashPosition(wrapped_env)
 
@@ -18,7 +17,7 @@ wrapped_env = HashPosition(wrapped_env)
 epsilon = 0.1
 alpha = 0.1
 gamma = 0.9
-agent = SarsaExp(wrapped_env, alpha, gamma, epsilon)
+agent = SarsaExp(wrapped_env, alpha, gamma, epsilon, seed=42)
 
 # 进行训练
 num_episodes = 700          # 训练交互轨迹总量
@@ -32,19 +31,20 @@ for i in range(num_period): # 分轮完成训练，每轮结束后统计该轮�
             action = agent.take_action(observation)
             wrapped_env.render(state_values=agent.V_table.reshape(-1,wrapped_env.nrow).T, policy=agent.greedy_policy)      
 
-            terminated, truncated = False, False
-            while not terminated and not truncated:
+            while True:
                 next_observation, reward, terminated, truncated, info = wrapped_env.step(action)
                 agent.update_Q_table(observation, action, reward, next_observation)
                 agent.update_policy()
+                episode_return += reward    # 这里回报的计算不进行折扣因子衰减
+                agent.update_V_table()      
+            
+                if terminated or truncated:
+                    break
 
                 next_action = agent.take_action(next_observation)
                 observation = next_observation
                 action = next_action
 
-                episode_return += reward    # 这里回报的计算不进行折扣因子衰减
-                agent.update_V_table()      
-            
             # 降低渲染频率，可以大幅提升运算速度（因为这里都是在轨迹开始时渲染，agent看起来不动）
             if i_episode % 5 == 0:
                 wrapped_env.render(state_values=agent.V_table.reshape(-1,wrapped_env.nrow).T, policy=agent.greedy_policy)                    
