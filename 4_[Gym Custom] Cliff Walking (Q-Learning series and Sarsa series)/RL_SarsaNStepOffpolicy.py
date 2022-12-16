@@ -1,23 +1,26 @@
 import matplotlib.pyplot as plt
 from MyGymExamples import CliffWalkingEnv, HashPosition
-from RL_Slover import QLearning
+from RL_Slover import SarsaNStepOffpolicy
 import numpy as np
 from gym.wrappers import TimeLimit
 from tqdm import tqdm   # 显示循环进度条的库
+import gym
 
 # env实例
 map_size = (4,12)
 env = CliffWalkingEnv(render_mode='human', map_size=map_size, pix_square_size=30)
-env.action_space.seed(42)
-observation, info = env.reset(seed=42)
+#env = gym.make('MyGymExamples/CliffWalkingEnv-v0', render_mode='human', map_size=map_size, pix_square_size=30)
+np.random.seed(42)
 wrapped_env = TimeLimit(env, max_episode_steps=100)
 wrapped_env = HashPosition(wrapped_env)
+observation, info = wrapped_env.reset(seed=42)
 
 # agent实例
 epsilon = 0.1
 alpha = 0.1
 gamma = 0.9
-agent = QLearning(wrapped_env, alpha, gamma, epsilon, seed=42)
+n_step = 5
+agent = SarsaNStepOffpolicy(wrapped_env, n_step, alpha, gamma, epsilon, seed=42)
 
 # 进行训练
 num_episodes = 700          # 训练交互轨迹总量
@@ -29,22 +32,23 @@ for i in range(num_period): # 分轮完成训练，每轮结束后统计该轮�
             episode_return = 0
             observation,_ = wrapped_env.reset()
             action = agent.take_action(observation)
+            #action = wrapped_env.action_space.sample()
             wrapped_env.render(state_values=agent.V_table.reshape(-1,wrapped_env.nrow).T, policy=agent.greedy_policy)      
 
             while True:
                 next_observation, reward, terminated, truncated, info = wrapped_env.step(action)
-                agent.update_Q_table(observation, action, reward, next_observation, batch_size=5)   # 通过 batch_size 参数设定 on-policy 还是 off-policy 
+                next_action = agent.take_action(next_observation)
+                agent.update_Q_table(observation, action, reward, next_observation, next_action, done=(terminated or truncated))
                 agent.update_policy()
                 episode_return += reward    # 这里回报的计算不进行折扣因子衰减
-                agent.update_V_table()     
+                agent.update_V_table()  
 
                 if terminated or truncated:
                     break
 
-                next_action = agent.take_action(next_observation)
                 observation = next_observation
-                action = next_action 
-            
+                action = next_action
+
             # 降低渲染频率，可以大幅提升运算速度（因为这里都是在轨迹开始时渲染，agent看起来不动）
             if i_episode % 5 == 0:
                 wrapped_env.render(state_values=agent.V_table.reshape(-1,wrapped_env.nrow).T, policy=agent.greedy_policy)                    
@@ -65,6 +69,6 @@ episodes_list = list(range(len(return_list)))
 plt.plot(episodes_list, return_list)
 plt.xlabel('Episodes')
 plt.ylabel('Returns')
-plt.title('Q-Learning on {}'.format('Cliff Walking'))
+plt.title('{}-step Tree Backup on {}'.format(n_step, 'Cliff Walking'))
 plt.show()
 #env.close()
