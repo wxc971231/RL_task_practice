@@ -208,11 +208,20 @@ class SarsaExp(Slover):
     def __init__(self, env:gym.Env, alpha=0.1, gamma=0.9, epsilon=0.1, seed=None):
         super().__init__(env, alpha, gamma, epsilon, seed)
     
-    def update_Q_table(self, s, a, r, s_):    
-        Q_exp = self.epsilon*self.Q_table[s_].mean() + (1-self.epsilon)*self.Q_table[s_].max()  # epsilon-greedy 策略下的 E_a[Q(s_,a)]
-        td_target = r + self.gamma * Q_exp
-        td_error = td_target - self.Q_table[s,a]
-        self.Q_table[s,a] += self.alpha * td_error
+    def update_Q_table(self, s, a, r, s_, batch_size=0):    
+        if batch_size == 0:     # on-policy
+            Q_exp = self.epsilon*self.Q_table[s_].mean() + (1-self.epsilon)*self.Q_table[s_].max()  # epsilon-greedy 策略下的 E_a[Q(s_,a)]
+            td_target = r + self.gamma * Q_exp
+            td_error = td_target - self.Q_table[s,a]
+            self.Q_table[s,a] += self.alpha * td_error
+        else:                   # off-policy
+            self.replay_buffer.push_transition(transition=(s, a, r, s_))
+            transitions = self.replay_buffer.sample_batch(batch_size)
+            for s, a, r, s_ in transitions:
+                Q_exp = self.epsilon*self.Q_table[s_].mean() + (1-self.epsilon)*self.Q_table[s_].max()  # epsilon-greedy 策略下的 E_a[Q(s_,a)]
+                td_target = r + self.gamma * Q_exp
+                td_error = td_target - self.Q_table[s,a]
+                self.Q_table[s,a] += self.alpha * td_error
         self.policy_is_updated = False
 
 class QLearningDouble(Slover):
@@ -236,15 +245,20 @@ class QLearningDouble(Slover):
         self.greedy_policy = np.array([np.argwhere(Q_sum[i]==best_action_value[i]).flatten() for i in range(self.n_observation)], dtype=object)
         self.policy_is_updated = True
 
-    def update_Q_table(self, s, a, r, s_):
-        if self.rng.random() < 0.5:
-            td_target = r + self.gamma * self.Q_table[s_][np.argmax(self.Q_table_[s_])]
-            td_error = td_target - self.Q_table_[s,a]
-            self.Q_table_[s,a] += self.alpha * td_error
-        else:
-            td_target = r + self.gamma * self.Q_table_[s_][np.argmax(self.Q_table[s_])]
-            td_error = td_target - self.Q_table[s,a]
-            self.Q_table[s,a] += self.alpha * td_error       
+    def update_Q_table(self, s, a, r, s_, batch_size=0):
+        transitions = [(s, a, r, s_)]
+        if batch_size > 0:
+            self.replay_buffer.push_transition(transition=(s, a, r, s_))
+            transitions = self.replay_buffer.sample_batch(batch_size)
+        for s, a, r, s_ in transitions:
+            if self.rng.random() < 0.5:
+                td_target = r + self.gamma * self.Q_table[s_][np.argmax(self.Q_table_[s_])]
+                td_error = td_target - self.Q_table_[s,a]
+                self.Q_table_[s,a] += self.alpha * td_error
+            else:
+                td_target = r + self.gamma * self.Q_table_[s_][np.argmax(self.Q_table[s_])]
+                td_error = td_target - self.Q_table[s,a]
+                self.Q_table[s,a] += self.alpha * td_error       
         self.policy_is_updated = False
 
 class NStepTreeBackup(Slover):
@@ -255,7 +269,7 @@ class NStepTreeBackup(Slover):
         self.action_list = []   # 保存之前的动作
         self.reward_list = []   # 保存之前的奖励
 
-    def greedy_action_probability(self, s, a):
+    def _greedy_action_probability(self, s, a):
         if a in self.greedy_policy[s]:
             return 1.0/self.greedy_policy[s].shape[0]
         else:
@@ -278,8 +292,8 @@ class NStepTreeBackup(Slover):
                 leaf_value = 0
                 for leaf_a in np.arange(self.n_action):
                     if leaf_a != a:
-                        leaf_value += self.greedy_action_probability(s, leaf_a) * self.Q_table[s,leaf_a]
-                G = r + self.gamma * (leaf_value + self.greedy_action_probability(s, a) * G)   
+                        leaf_value += self._greedy_action_probability(s, leaf_a) * self.Q_table[s,leaf_a]
+                G = r + self.gamma * (leaf_value + self._greedy_action_probability(s, a) * G)   
             
             # 对list中第一个动作状态 pair 进行更新，然后将其从 list 移除 
             s = self.state_list.pop(0)  
@@ -296,8 +310,8 @@ class NStepTreeBackup(Slover):
                 leaf_value = 0
                 for leaf_a in np.arange(self.n_action):
                     if leaf_a != a:
-                        leaf_value += self.greedy_action_probability(s, leaf_a) * self.Q_table[s,leaf_a]
-                G = r + self.gamma * (leaf_value + self.greedy_action_probability(s, a) * G)   
+                        leaf_value += self._greedy_action_probability(s, leaf_a) * self.Q_table[s,leaf_a]
+                G = r + self.gamma * (leaf_value + self._greedy_action_probability(s, a) * G)   
 
                 s = self.state_list[i]
                 a = self.action_list[i]

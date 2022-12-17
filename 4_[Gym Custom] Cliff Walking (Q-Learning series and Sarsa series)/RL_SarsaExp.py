@@ -33,7 +33,7 @@ for i in range(num_period): # 分轮完成训练，每轮结束后统计该轮�
 
             while True:
                 next_observation, reward, terminated, truncated, info = wrapped_env.step(action)
-                agent.update_Q_table(observation, action, reward, next_observation)    
+                agent.update_Q_table(observation, action, reward, next_observation, batch_size=5)    
                 agent.update_policy()
                 episode_return += reward    # 这里回报的计算不进行折扣因子衰减
                 agent.update_V_table()      

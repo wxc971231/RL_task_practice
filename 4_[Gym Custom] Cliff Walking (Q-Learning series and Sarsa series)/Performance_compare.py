@@ -4,9 +4,9 @@ import numpy as np
 colors = ['r', 'b', 'c', 'g', 'k', 'y', 'm']
 #algorithms = ['QLearning', 'QLearning_alpha=1', 'QLearning_replay=5', 'Sarsa', 'Sarsa_alpha=1']
 #algorithms = ['QLearning', 'QLearning_alpha=1', 'QLearning_replay=5']
-#algorithms = ['SarsaExp', 'SarsaExp_alpha=1', 'QLearning', 'QLearning_alpha=1', 'QLearning_replay=5' ]
-algorithms = ['SarsaExp', 'Sarsa',]
-#algorithms = ['SarsaExp', '5StepTreeBackup', 'Sarsa5Step']
+#algorithms = ['SarsaExp', 'SarsaExp_alpha=1', 'Sarsa', 'QLearning_alpha=1', 'QLearning_replay=5' ]
+#algorithms = ['QLearningDouble', 'QLearningDouble_replay=5', 'QLearning', 'QLearning_replay=5']
+algorithms = ['Sarsa', '5StepTreeBackup', 'Sarsa5Step']
 
 plt.xlabel('Episodes')
 plt.ylabel('Ave Returns')

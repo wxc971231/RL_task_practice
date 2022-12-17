@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from MyGymExamples import CliffWalkingEnv, HashPosition
-from RL_Slover import SarsaExp
+from RL_Slover import QLearningDouble
 import numpy as np
 from gym.wrappers import TimeLimit
 import gym
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     for env_index in range(num_test):        
         epsilon, alpha, gamma = 0.1, 0.1, 0.9
         env_type = envs.env_fns[0]()
-        agents.append(SarsaExp(env_type, alpha, gamma, epsilon, seeds[env_index])) 
+        agents.append(QLearningDouble(env_type, alpha, gamma, epsilon, seeds[env_index])) 
 
     # 训练过程参数
     episode_returns = np.zeros(num_test, dtype=int)     # 不同并行环境当前轨迹 return
@@ -84,15 +84,15 @@ if __name__ == "__main__":
         for i, agent in enumerate(agents):
             action = 0 if dones[i] else agent.take_action(observations[i]) # done 的环境执行 noop 动作
             actions.append(action)
-    
-    envs.close()
 
+    envs.close()    
+    
     # 绘制 return 变化图
-    np.save('data/SarsaExp_replay=5', envs_returns)
+    np.save('data/QLearningDouble_replay=5', envs_returns)
 
     plt.xlabel('Episodes')
     plt.ylabel('Ave Returns')
-    plt.title('Expectation Sarsa on {}'.format('Cliff Walking'))
+    plt.title('Double Q-Learning on {}'.format('Cliff Walking'))
 
     ave_performance = envs_returns.mean(axis=0)                                         # 多个随机种子实验的平均性能
     filter_length = max(1, int(num_episodes/15))                                               # 滑动均值滤波长度

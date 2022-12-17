@@ -65,6 +65,8 @@ for i in range(num_period): # 分轮完成训练，每轮结束后统计该轮�
             pbar.update(1)
     #agent.epsilon -= epsilon/num_period # 探索概率线性衰减
 
+env.close()
+
 # 绘制return变化图
 episodes_list = list(range(len(return_list)))
 plt.plot(episodes_list, return_list)
@@ -72,4 +74,3 @@ plt.xlabel('Episodes')
 plt.ylabel('Returns')
 plt.title('{}-step Tree Backup on {}'.format(n_step, 'Cliff Walking'))
 plt.show()
-#env.close()

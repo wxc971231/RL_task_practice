@@ -85,6 +85,8 @@ if __name__ == "__main__":
             action = 0 if dones[i] else agent.take_action(observations[i]) # done 的环境执行 noop 动作
             actions.append(action)
         
+    envs.close()
+    
     # 绘制 return 变化图
     np.save('data/5StepTreeBackup', envs_returns)
 
@@ -101,5 +103,3 @@ if __name__ == "__main__":
     plt.plot(x, ave_sliding, color='b', alpha=0.8)                                      # 滤波后数据实现显示
 
     plt.show()
-    
-    #envs.close()

@@ -33,7 +33,7 @@ for i in range(num_period): # 分轮完成训练，每轮结束后统计该轮�
 
             while True:
                 next_observation, reward, terminated, truncated, info = wrapped_env.step(action)
-                agent.update_Q_table(observation, action, reward, next_observation, batch_size=5)   # 通过 batch_size 参数设定 on-policy 还是 off-policy 
+                agent.update_Q_table(observation, action, reward, next_observation, batch_size=0)   # 通过 batch_size 参数设定 on-policy 还是 off-policy 
                 agent.update_policy()
                 episode_return += reward    # 这里回报的计算不进行折扣因子衰减
                 agent.update_V_table()     
@@ -60,6 +60,8 @@ for i in range(num_period): # 分轮完成训练，每轮结束后统计该轮�
             pbar.update(1)
     #agent.epsilon -= epsilon/num_period # 探索概率线性衰减
 
+env.close()
+
 # 绘制return变化图
 episodes_list = list(range(len(return_list)))
 plt.plot(episodes_list, return_list)
@@ -67,4 +69,3 @@ plt.xlabel('Episodes')
 plt.ylabel('Returns')
 plt.title('Q-Learning on {}'.format('Cliff Walking'))
 plt.show()
-#env.close()
