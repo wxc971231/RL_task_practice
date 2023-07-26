@@ -57,7 +57,7 @@
   4. N-step Tree Backup
   5. Q-Learning
 6. Double Q-Learning
-  
+
 - **Brief introduction**: The experiment was conducted in a custom Cliff Walking environment based on gym. As you can see, there are two test files were written for each algorithm：
 
   1. The code whose filename start with `RL_` are used to **show the convergence process**, there will be a env UI and the agent will be trained with a **single** random seed
@@ -76,6 +76,16 @@
 - **Brief introduction**: The experiment was conducted in a custom Rolling-Ball environment based on gym. The Rolling-Ball environment is kind of like Maze2d environment. Imagine a rolling ball on a two-dimensional plane, applying horizontal and vertical forces to it, the ball will move under the action of acceleration. When the ball hits the edge of the plane, it will have a fully elastic collision, and we want the ball to reach the target position as soon as possible under the action of the force
 
 - **Detailed description**: [RL 实践（4）—— 二维滚球环境【DQN & Double DQN & Dueling DQN】](https://blog.csdn.net/wxc971231/article/details/131865151)
+
+
+
+## 6_[Gym Custom] Rolling Ball (REINFORCE and Actor-Critic)
+
+- **Project type**: Compare the performance of REINFORCE and Actor-Critic, which are two simplest policy gradient RL methods
+- **Brief introduction**: The experiment was conducted in a custom Rolling-Ball environment based on gym. The Rolling-Ball environment is kind of like Maze2d environment. Imagine a rolling ball on a two-dimensional plane, applying horizontal and vertical forces to it, the ball will move under the action of acceleration. When the ball hits the edge of the plane, it will have a fully elastic collision, and we want the ball to reach the target position as soon as possible under the action of the force
+- **Detailed description**: [RL 实践（5）—— 二维滚球环境【REINFORCE & Actor-Critic】](https://blog.csdn.net/wxc971231/article/details/131882224)
+
+
 
 
 
