@@ -87,6 +87,11 @@
 
 
 
+## 7_[Gym] CartPole-V0 (REINFORCE with baseline and A2C)
+
+- **Project type**: Validate the advantages of the policy gradient with baseline over the original REINFORCE & Actor-Critic approach without baseline on CartPole-V0 env
+- **Detailed description**: [RL 实践（6）—— CartPole【REINFORCE with baseline & A2C】](https://blog.csdn.net/wxc971231/article/details/131981803)
+
 
 
 ...to be continued
