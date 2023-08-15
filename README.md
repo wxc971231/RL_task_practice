@@ -94,4 +94,9 @@
 
 
 
+## 8_[Gym] CartPole-V0 (PPO)
+
+- **Project type**: Test the PPO algorithm on the CartPole-V0 environment, which is one of the most popular Online RL methods
+- **Detailed description**: [RL 实践（7）—— CartPole【TPRO & PPO】](https://blog.csdn.net/wxc971231/article/details/132214844)
+
 ...to be continued
