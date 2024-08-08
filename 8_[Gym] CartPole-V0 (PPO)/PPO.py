@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from gym.utils.env_checker import check_env
 from gym.wrappers import TimeLimit 
+from datetime import datetime
+from torch.utils.tensorboard import SummaryWriter
 
 class PolicyNet(torch.nn.Module):
     ''' 策略网络是一个两层 MLP '''
@@ -117,8 +119,8 @@ if __name__ == "__main__":
     action_range = 2            # 环境动作空间大小
     actor_lr = 1e-3
     critic_lr = 1e-2
-    num_episodes = 500
-    hidden_dim = 128
+    num_episodes = 200
+    hidden_dim = 64
     gamma = 0.98
     lmbda = 0.95
     epochs = 10
@@ -133,6 +135,13 @@ if __name__ == "__main__":
 
     # build agent
     agent = PPO(state_dim, hidden_dim, action_range, actor_lr, critic_lr, lmbda, epochs, eps, gamma, device)
+
+    '''
+    # TensorBoard writer
+    TIMESTAMP = "{0:%Y-%m-%dT%H-%M-%S/}".format(datetime.now())
+    writer = SummaryWriter(f"logs/PPO")
+    #writer = SummaryWriter(f"logs/PPO/{TIMESTAMP}")
+    '''
 
     # start training
     return_list = []
@@ -183,6 +192,32 @@ if __name__ == "__main__":
                 })
                 pbar.update(1)
 
+                '''
+                writer.add_scalars(
+                    main_tag='return', 
+                    tag_scalar_dict={f'hidden{hidden_dim}':episode_return}, 
+                    global_step=i*int(num_episodes / 10) + i_episode
+                )
+                '''
+
+    '''
+    writer.add_hparams(
+        hparam_dict={
+            'actor_lr': actor_lr, 
+            'critic_lr': critic_lr,
+            'hidden_dim': hidden_dim,
+            'gamma': gamma,
+            'lmbda': lmbda,
+            'eps': eps,
+            'num_episodes': num_episodes
+        },
+        metric_dict={
+            'hparam/ave return': np.mean(return_list), 
+        }
+    )
+    writer.close()
+    '''
+    
     # show policy performence
     mv_return_list = moving_average(return_list, 29)
     episodes_list = list(range(len(return_list)))
@@ -195,3 +230,4 @@ if __name__ == "__main__":
     plt.legend()
     plt.savefig(f'./result/{agent._get_name()}.png')
     plt.show()                           
+    

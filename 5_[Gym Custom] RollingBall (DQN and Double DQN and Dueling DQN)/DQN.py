@@ -197,6 +197,7 @@ if __name__ == "__main__":
         action = env.action_space.sample()
         next_state, reward, terminated, truncated, _ = env.step(action)
         replay_buffer.add(state, action, reward, next_state, done=terminated or truncated)
+        state = next_state
         if terminated or truncated:
             env.render()
             state, _ = env.reset()
