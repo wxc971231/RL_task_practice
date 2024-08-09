@@ -56,7 +56,7 @@
   3. N-step Sarsa
   4. N-step Tree Backup
   5. Q-Learning
-6. Double Q-Learning
+  6. Double Q-Learning
 
 - **Brief introduction**: The experiment was conducted in a custom Cliff Walking environment based on gym. As you can see, there are two test files were written for each algorithm：
 
