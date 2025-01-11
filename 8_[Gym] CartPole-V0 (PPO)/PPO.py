@@ -50,10 +50,10 @@ class PPO(torch.nn.Module):
         self.device = device        
 
     def take_action(self, state):
-        state = torch.tensor(state, dtype=torch.float).to(self.device)
-        state = state.unsqueeze(0)
-        probs = self.actor(state)
-        action_dist = torch.distributions.Categorical(probs)
+        state = torch.tensor(state, dtype=torch.float).to(self.device)  # (state_dim, )
+        state = state.unsqueeze(0)                                      # (1, state_dim)                  
+        probs = self.actor(state)                                       # (1, action_range)
+        action_dist = torch.distributions.Categorical(probs)            # (1, action_range)
         action = action_dist.sample()
         return action.item()
 
@@ -69,21 +69,21 @@ class PPO(torch.nn.Module):
         return torch.tensor(np.array(advantage_list), dtype=torch.float)
 
     def update(self, transition_dict):
-        states = torch.tensor(np.array(transition_dict['states']), dtype=torch.float).to(self.device)
-        actions = torch.tensor(transition_dict['actions']).view(-1, 1).to(self.device)
-        rewards = torch.tensor(transition_dict['rewards'], dtype=torch.float).view(-1, 1).to(self.device)
-        next_states = torch.tensor(np.array(transition_dict['next_states']), dtype=torch.float).to(self.device)
-        dones = torch.tensor(transition_dict['dones'], dtype=torch.float).view(-1, 1).to(self.device)
+        states = torch.tensor(np.array(transition_dict['states']), dtype=torch.float).to(self.device)               # (timestep, state_dim)
+        actions = torch.tensor(transition_dict['actions']).view(-1, 1).to(self.device)                              # (timestep, act_dim)
+        rewards = torch.tensor(transition_dict['rewards'], dtype=torch.float).view(-1, 1).to(self.device)           # (timestep, 1)
+        next_states = torch.tensor(np.array(transition_dict['next_states']), dtype=torch.float).to(self.device)     # (timestep, state_dim)
+        dones = torch.tensor(transition_dict['dones'], dtype=torch.float).view(-1, 1).to(self.device)               # (timestep, 1)
 
-        td_target = rewards + self.gamma * self.critic(next_states) * (1-dones)
-        td_delta = td_target - self.critic(states)
-        advantage = self.compute_advantage(self.gamma, self.lmbda, td_delta.cpu()).to(self.device)
-        old_log_probs = torch.log(self.actor(states).gather(1, actions)).detach()
+        td_target = rewards + self.gamma * self.critic(next_states) * (1-dones)                                     # (timestep, 1)
+        td_delta = td_target - self.critic(states)                                                                  # (timestep, 1)                        
+        advantage = self.compute_advantage(self.gamma, self.lmbda, td_delta.cpu()).to(self.device)                  # (timestep, 1)
+        old_log_probs = torch.log(self.actor(states).gather(1, actions)).detach()                                   # (timestep, 1)
 
         # 用刚采集的一条轨迹数据训练 epochs 轮
         for _ in range(self.epochs):
-            log_probs = torch.log(self.actor(states).gather(1, actions))
-            ratio = torch.exp(log_probs - old_log_probs)
+            log_probs = torch.log(self.actor(states).gather(1, actions))                                            # (timestep, 1)
+            ratio = torch.exp(log_probs - old_log_probs)                                                            # (timestep, 1)
             surr1 = ratio * advantage
             surr2 = torch.clamp(ratio, 1 - self.eps, 1 + self.eps) * advantage  # 截断
             actor_loss = torch.mean(-torch.min(surr1, surr2))                   # PPO损失函数
