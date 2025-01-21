@@ -1,12 +1,17 @@
+import os
+import sys
+base_path = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+sys.path.append(base_path)
+
 import random
 import time
-
 import gym
 import numpy as np
 import functools
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from pathlib import Path
 from torch.distributions.categorical import Categorical
 from args import parse_args
 from torch.utils.tensorboard import SummaryWriter
@@ -69,10 +74,19 @@ class Agent(nn.Module):
         value = self.critic(x)              # (env_nums, 1)
         return action, log_prob, entropy, value
 
-if __name__ == '__main__':
+def get_args_ready():
     args = parse_args()
-    run_name = f"{args.gym_id}_{args.exp_name}_{args.seed}_{int(time.time())}"
-    device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
+    args.device = "cuda" if torch.cuda.is_available() and args.cuda else 'cpu'
+
+    args.exp_name = 'TEST'
+    args.run_name = f"{args.gym_id}_{args.exp_name}_{args.seed}_{int(time.time())}"
+    args.track = True
+
+    return args
+
+if __name__ == '__main__':
+    args = get_args_ready()
+    device = torch.device(args.device)
     
     # Setup Wandb
     if args.track:
@@ -80,16 +94,16 @@ if __name__ == '__main__':
         wandb.init(
             project=args.wandb_project_name,
             entity=args.wandb_entity,
+            dir = Path(f'{base_path}/Wandb'),
             sync_tensorboard=True,
             config=vars(args),
-            name=run_name,
+            name=args.run_name,
             monitor_gym=True,       # 上传 gym 环境中录制的视频
             save_code=True,         # 上传代码副本
         )
 
-
     # Setup TensorBoard
-    writer = SummaryWriter(f"runs/{run_name}")
+    writer = SummaryWriter(f"runs/{args.run_name}")
     writer.add_text(
         "hyperparameters",
         "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
@@ -102,7 +116,7 @@ if __name__ == '__main__':
     torch.backends.cudnn.deterministic = args.torch_deterministic
 
     # Setup Vectorized environments (PPO implementation detail 1)
-    envs = [functools.partial(make_env, args.gym_id, args.seed+i, i, args.capture_video, run_name, args.video_trigger) \
+    envs = [functools.partial(make_env, args.gym_id, args.seed+i, i, args.capture_video, args.run_name, args.video_trigger) \
         for i in range(args.num_envs)]    # 使用 functools.partial 冻结每次循环传给 make_env 的参数 
     envs = gym.vector.SyncVectorEnv(envs)  
     assert isinstance(envs.single_action_space, gym.spaces.Discrete), 'only discrete action space is supported'
@@ -119,7 +133,7 @@ if __name__ == '__main__':
     logprobs = torch.zeros((args.num_steps, args.num_envs)).to(device)                                  # (step_nums, env_nums)
     rewards = torch.zeros((args.num_steps, args.num_envs)).to(device)                                   # (step_nums, env_nums)
     dones = torch.zeros((args.num_steps, args.num_envs)).to(device)                                     # (step_nums, env_nums)
-    values = torch.zeros((args.num_steps, args.num_envs)).to(device)                                    # (step_nums, env_nums)
+    values = torch.zeros((args.num_steps, args.num_envs)).to(device)                                    # (step_nums, env_nums)                                   
 
     # TRY NOT TO MODIFY: start the game
     global_step = 0
@@ -291,3 +305,5 @@ if __name__ == '__main__':
     
     envs.close()
     writer.close()
+    if args.track:
+        wandb.finish()

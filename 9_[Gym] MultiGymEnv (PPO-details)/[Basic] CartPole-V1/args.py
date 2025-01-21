@@ -26,13 +26,13 @@ def parse_args():
     parser.add_argument(
         "--seed", 
         type=int, 
-        default=1,
+        default=42,
         help="seed of the experiment"
     )
     parser.add_argument(
         "--total-timesteps", 
         type=int, 
-        default=50000,
+        default=25000,
         help="total timesteps of the experiments"
     )
     parser.add_argument(
@@ -62,7 +62,7 @@ def parse_args():
     parser.add_argument(
         "--wandb-project-name", 
         type=str, 
-        default="ppo-implementation-details",
+        default="ppo-basic",
         help="the wandb's project name"
     )
     parser.add_argument(
